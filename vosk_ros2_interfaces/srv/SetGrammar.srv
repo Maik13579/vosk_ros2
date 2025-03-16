@@ -8,6 +8,7 @@
 #####################################
 
 # Request
+string path             # Path to the grammar file (if empty use grammar field below)
 string[] grammar        # Each line of the grammar definition (e.g., "Hello | Good (Morning | Afternoon)")
                         # If empty, clear the grammar
 bool return_expansions  # If true, expand the grammar and return all possible sentences
