@@ -1,0 +1,18 @@
+# Goal
+
+bool continuous         # If true, keep listening continuously until canceled
+bool enable_speaker_id  # If true, include speaker recognition if available
+bool publish_partial    # If true, send partial results as feedback
+
+---
+# Result
+
+RecognizedSpeech final_result  # The final recognized speech, will be empty in continuous mode
+bool success                   # True if recognition succeeded
+string error_message           # Reason if recognition failed
+
+---
+# Feedback
+
+RecognizedSpeech continous_result  # Like final_result, just for continuous mode
+string partial_text                # Simple partial text during recognition
