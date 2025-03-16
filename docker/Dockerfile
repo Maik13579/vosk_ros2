@@ -30,6 +30,7 @@ RUN apt update \
 
 # Install dependencies
 COPY vosk_ros2_interfaces/package.xml ${ROS_WS}/src/vosk_ros2_interfaces/package.xml
+COPY vosk_ros2/package.xml ${ROS_WS}/src/vosk_ros2/package.xml
 
 RUN apt update \
     && rosdep update \
@@ -38,7 +39,7 @@ RUN apt update \
 
 # Build
 COPY vosk_ros2_interfaces ${ROS_WS}/src/vosk_ros2_interfaces
-
+COPY vosk_ros2 ${ROS_WS}/src/vosk_ros2
 WORKDIR ${ROS_WS}
 RUN source /opt/ros/$ROS_DISTRO/setup.bash \
     && colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release
