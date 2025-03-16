@@ -4,6 +4,7 @@ import sys
 import json
 import queue
 import threading
+import time
 import sounddevice as sd
 import vosk
 
@@ -55,16 +56,13 @@ class VoskSpeechRecognizer:
         """
         Re-initializes the Vosk recognizer with a plain list of sentences.
         If the list is empty, revert to free-form recognition.
-
         Then re-attach the speaker model if we have one.
         """
         if not sentence_list:
-            # Free-form
             self.recognizer = vosk.KaldiRecognizer(self.model, self.sample_rate)
         else:
             grammar_json = json.dumps(sentence_list)
             self.recognizer = vosk.KaldiRecognizer(self.model, self.sample_rate, grammar_json)
-
         if self.spk_model:
             self.recognizer.SetSpkModel(self.spk_model)
 
@@ -110,12 +108,16 @@ class VoskSpeechRecognizer:
         """
         return self.recognizer.FinalResult()
 
-    def run_mic(self, block_size=8000, show_partial=True):
+    def run_mic(self, block_size=8000, show_partial=True, silence_timeout=3.0):
         """
         Captures audio from the default microphone using sounddevice,
         processes it in real-time, and prints partial/final results.
-        :param block_size: Number of frames per read from sounddevice
-        :param show_partial: If True, prints partial results as recognized
+        If no new partial result is detected for 'silence_timeout' seconds,
+        the capture stops.
+        
+        :param block_size: Number of frames per read from sounddevice.
+        :param show_partial: If True, prints partial results as recognized.
+        :param silence_timeout: Time in seconds to wait for a change in partial result before stopping.
         """
         try:
             with sd.RawInputStream(
@@ -126,28 +128,39 @@ class VoskSpeechRecognizer:
                 callback=self._sd_callback
             ):
                 print(f"Listening at {self.sample_rate} Hz. Press Ctrl+C to stop.")
-                # Keep running until user interrupts or external code sets self.running=False
                 self.running = True
+                last_non_silence_time = time.time()
+                last_partial = ""
                 while self.running:
                     sd.sleep(100)
-                    if show_partial:
-                        pr = self.get_partial_result()
-                        if '"partial"' in pr:
-                            partial_data = json.loads(pr)
-                            text = partial_data.get("partial", "")
-                            if text:
+                    pr = self.get_partial_result()
+                    if '"partial"' in pr:
+                        partial_data = json.loads(pr)
+                        text = partial_data.get("partial", "")
+                        # Only update timer if partial result changed and is non-empty.
+                        if text and text != last_partial:
+                            last_partial = text
+                            last_non_silence_time = time.time()
+                            if show_partial:
                                 print(f"Partial: {text}", flush=True)
+                        # If partial result is empty, don't update last_partial.
+                    # Check if silence timeout exceeded.
+                    if time.time() - last_non_silence_time > silence_timeout:
+                        print("Silence detected, stopping recognition.")
+                        self.running = False
+                        break
         except KeyboardInterrupt:
             print("\nInterrupted, stopping microphone capture...")
+            self.running = False
         except Exception as e:
             print(f"[Error] {e}", file=sys.stderr)
+            self.running = False
 
         # Print final result
         final_json = self.get_final_result()
         if final_json:
             final_data = json.loads(final_json)
             print("\nFinal text:", final_data.get("text", ""))
-            # If we have a speaker embedding or ID:
             if "spk" in final_data:
                 print("Speaker embedding:", final_data["spk"])
             elif "speaker" in final_data:
@@ -155,13 +168,11 @@ class VoskSpeechRecognizer:
 
     def _sd_callback(self, indata, frames, time_info, status):
         """
-        Sounddevice callback. Converts the incoming cffi buffer to bytes
-        and feeds it to Vosk for immediate recognition.
+        Sounddevice callback. Converts the incoming buffer to bytes and feeds it to Vosk.
         """
         if status:
             print(f"[Audio Status] {status}", file=sys.stderr)
         if self.running:
-            # Convert the incoming buffer to bytes.
             data_bytes = bytes(indata)
             self.recognizer.AcceptWaveform(data_bytes)
 
@@ -176,8 +187,6 @@ class VoskSpeechRecognizer:
             except queue.Empty:
                 continue
             self.recognizer.AcceptWaveform(data)
-
-        # Flush any remaining data
         self.audio_queue.queue.clear()
 
 
@@ -187,6 +196,7 @@ if __name__ == "__main__":
     1) Provide model_path and speaker_model_path to VoskSpeechRecognizer.
     2) Optionally set grammar to constrain recognized phrases.
     3) Use run_mic() to capture live audio from your microphone.
+    The capture will automatically stop if no new partial result is detected for the specified silence_timeout.
     """
     model_path = "/opt/vosk_model/speech_model"
     speaker_model_path = "/opt/vosk_model/speaker_model"  # Or None if not available
@@ -197,10 +207,10 @@ if __name__ == "__main__":
         speaker_model_path=speaker_model_path
     )
 
-    # Optional grammar
+    # Optional grammar: if empty, recognition is free-form.
     my_grammar = ["hello world", "how are you", "turn on the light", "turn off the light"]
     recognizer.set_grammar(my_grammar)
 
-    # Capture mic and block until Ctrl+C
-    recognizer.run_mic(block_size=8000, show_partial=True)
+    # Capture mic; will stop automatically after silence_timeout seconds of no new partial updates.
+    recognizer.run_mic(block_size=8000, show_partial=False, silence_timeout=3.0)
     print("Done.")
