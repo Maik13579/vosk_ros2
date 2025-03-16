@@ -15,5 +15,5 @@ services:
     volumes:
       - /dev/snd:/dev/snd
       - ../vosk_ros2:/root/ros2_ws/src/vosk_ros2
-    command: tail -f /dev/null
+    command: ros2 run vosk_ros2 vosk_ros2_node
 
