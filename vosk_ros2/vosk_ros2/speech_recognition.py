@@ -164,18 +164,7 @@ class VoskSpeechRecognizer:
             print(f"[Error] {e}", file=sys.stderr)
             self.running = False
 
-        # Pretty-print final result
-        final_json = self.get_final_result()
-        if final_json:
-            try:
-                final_data = json.loads(final_json)
-            except Exception as e:
-                print("Error parsing final JSON:", e)
-                return
-
-            print("\n==================== Final Result ====================")
-            print(json.dumps(final_data, indent=2))
-            print("======================================================\n")
+        
 
     def _sd_callback(self, indata, frames, time_info, status):
         """
@@ -225,4 +214,16 @@ if __name__ == "__main__":
 
     # Capture mic; will stop automatically after silence_timeout seconds of no new partial updates.
     recognizer.run_mic(block_size=8000, show_partial=True, silence_timeout=3.0)
+    final_result = recognizer.get_final_result()
+    if final_result:
+            try:
+                final_data = json.loads(final_result)
+            except Exception as e:
+                print("Error parsing final JSON:", e)
+                exit(1)
+
+
+            print("\n==================== Final Result ====================")
+            print(json.dumps(final_data, indent=2))
+            print("======================================================\n")
     print("Done.")
