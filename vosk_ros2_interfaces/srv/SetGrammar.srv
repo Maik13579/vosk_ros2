@@ -1,0 +1,19 @@
+#####################################
+# The grammar supports:
+# 1. "|"  for OR / alternatives
+# 2. "( )" for grouping
+# 3. "[ ]" for optional words
+# 4. "<tag>" for referencing named rules
+# (No repetition operators to avoid infinite expansions)
+#####################################
+
+# Request
+string[] grammar        # Each line of the grammar definition (e.g., "Hello | Good (Morning | Afternoon)")
+                        # If empty, clear the grammar
+bool return_expansions  # If true, expand the grammar and return all possible sentences
+
+---
+# Response
+string[] expansions     # All generated sentences if return_expansions is true
+bool success            # True if parsing and expansion succeeded
+string msg              # Error message if something went wrong
