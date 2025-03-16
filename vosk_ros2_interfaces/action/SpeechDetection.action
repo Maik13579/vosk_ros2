@@ -8,7 +8,7 @@ bool publish_partial    # If true, send partial results as feedback
 
 RecognizedSpeech final_result  # The final recognized speech, will be empty in continuous mode
 bool success                   # True if recognition succeeded
-string error_message           # Reason if recognition failed
+string message                 # Reason if recognition failed
 
 ---
 # Feedback

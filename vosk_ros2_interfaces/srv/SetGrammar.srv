@@ -17,4 +17,4 @@ bool return_expansions  # If true, expand the grammar and return all possible se
 # Response
 string[] expansions     # All generated sentences if return_expansions is true
 bool success            # True if parsing and expansion succeeded
-string msg              # Error message if something went wrong
+string message          # Error message if something went wrong
