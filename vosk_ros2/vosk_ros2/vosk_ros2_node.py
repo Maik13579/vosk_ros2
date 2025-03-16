@@ -9,8 +9,11 @@ import json
 # Import your recognizer and JSON parser.
 from vosk_ros2.speech_recognition import VoskSpeechRecognizer
 from vosk_ros2.json_parser import parse_vosk_json
+from vosk_ros2.grammar_parser import parse_grammar_lines
 from vosk_ros2_interfaces.msg import RecognizedSpeech
 from vosk_ros2_interfaces.action import SpeechDetection
+from vosk_ros2_interfaces.srv import SetGrammar
+
 
 class VoskNode(Node):
     def __init__(self):
@@ -22,6 +25,7 @@ class VoskNode(Node):
         self.declare_parameter('block_size', 8000)
         self.declare_parameter('silence_timeout', 3.0)
         self.declare_parameter('max_alternatives', 0)
+        self.declare_parameter('grammar_file', '')
 
         # Get parameter values.
         model_path = self.get_parameter('model_path').get_parameter_value().string_value
@@ -32,6 +36,13 @@ class VoskNode(Node):
         max_alternatives = self.get_parameter('max_alternatives').get_parameter_value().integer_value
         if max_alternatives < 1:
             max_alternatives = None # Disable
+        grammar_file = self.get_parameter('grammar_file').get_parameter_value().string_value
+
+        if grammar_file != '':
+            with open(grammar_file, 'r') as f:
+                grammar_lines = f.read().splitlines()
+            grammar = parse_grammar_lines(grammar_lines)
+            self.recognizer.set_grammar(grammar)
 
         self.block_size = block_size
         self.silence_timeout = silence_timeout
@@ -51,6 +62,9 @@ class VoskNode(Node):
             goal_callback=self.goal_callback,
             cancel_callback=self.cancel_callback
         )
+        # Create a Service for grammar setting.
+        self._grammar_service = self.create_service(SetGrammar, 'set_grammar', self.grammar_callback)
+
 
     def goal_callback(self, goal_request):
         self.get_logger().info("Received new speech detection goal.")
@@ -85,7 +99,7 @@ class VoskNode(Node):
             self.get_logger().info("Continuous mode canceled by client.")
             goal_handle.succeed()
             return SpeechDetection.Result(
-                final_result=RecognizedSpeech(), success=True, error_message="Canceled"
+                final_result=RecognizedSpeech(), success=True, message="Canceled"
             )
         else:
             # Single mode: run recognition once and send partial feedback while waiting.
@@ -114,7 +128,7 @@ class VoskNode(Node):
                     recog_thread.join()
                     goal_handle.succeed() 
                     return SpeechDetection.Result(
-                        final_result=RecognizedSpeech(), success=False, error_message="Canceled"
+                        final_result=RecognizedSpeech(), success=False, message="Canceled"
                     )
             recog_thread.join()
             time.sleep(0.5)
@@ -123,7 +137,7 @@ class VoskNode(Node):
             final_msg = parse_vosk_json(final_json)
             goal_handle.succeed() 
             return SpeechDetection.Result(
-                final_result=final_msg, success=True, error_message=""
+                final_result=final_msg, success=True, message=""
             )
 
     def _run_recognition(self):
@@ -136,6 +150,33 @@ class VoskNode(Node):
             show_partial=False,
             silence_timeout=self.silence_timeout
         )
+
+    def grammar_callback(self, request, response):
+        self.get_logger().info("Received SetGrammar service request.")
+        try:
+            if request.path.strip():
+                with open(request.path, "r") as f:
+                    lines = f.readlines()
+            else:
+                lines = request.grammar
+            if lines is None or len(lines) == 0:
+                expansions = []
+            # Expand the grammar using your parser.
+            expansions, warnings = parse_grammar_lines(lines)
+            if warnings:
+                for warning in warnings:
+                    self.get_logger().warn(warning)
+
+            # Update the recognizer's grammar.
+            self.recognizer.set_grammar(expansions)
+            response.expansions = expansions if request.return_expansions else []
+            response.success = True
+            response.message = ""
+        except Exception as e:
+            response.expansions = []
+            response.success = False
+            response.message = str(e)
+        return response
 
 def main(args=None):
     rclpy.init(args=args)
