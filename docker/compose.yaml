@@ -12,5 +12,7 @@ services:
     ipc: host
     privileged: true
     stdin_open: true
+    volumes:
+      - ../vosk_ros2:/root/ros2_ws/src/vosk_ros2
     command: tail -f /dev/null
 
