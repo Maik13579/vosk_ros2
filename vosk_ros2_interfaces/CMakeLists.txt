@@ -10,8 +10,8 @@ find_package(rosidl_default_generators REQUIRED)
 find_package(std_msgs REQUIRED)
 
 set(msg_files
-    "msg/Alternative.msg"
     "msg/Result.msg"
+    "msg/Alternative.msg"
     "msg/RecognizedSpeech.msg"
 )
 
