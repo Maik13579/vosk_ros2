@@ -13,22 +13,28 @@ def parse_vosk_json(json_str: str) -> RecognizedSpeech:
     msg.spk_frames = data.get("spk_frames", 0)
 
     # Compute elapsed time from the "result" array if available.
-    results = data.get("result", [])
-    if results:
-        first_start = float(results[0].get("start", 0.0))
-        last_end = float(results[-1].get("end", 0.0))
+    result = data.get("result", [])
+    if result:
+        first_start = float(result[0].get("start", 0.0))
+        last_end = float(result[-1].get("end", 0.0))
         msg.elapsed_time = last_end - first_start
-    else:
-        msg.elapsed_time = 0.0
 
-    # Parse word-level results.
-    for r in results:
+    # Compute elapsed time from the "alternatives" array if available.
+    if "alternatives" in data:
+        #only use first alternative
+        alt = data["alternatives"][0]
+        first_start = float(alt.get("result", [{}])[0].get("start", 0.0))
+        last_end = float(alt.get("result", [{}])[-1].get("end", 0.0))
+        msg.elapsed_time = last_end - first_start
+
+    # Parse word-level result.
+    for r in result:
         res = Result()
         res.conf = float(r.get("conf", 0.0))
         res.start = float(r.get("start", 0.0))
         res.end = float(r.get("end", 0.0))
         res.word = r.get("word", "")
-        msg.results.append(res)
+        msg.result.append(res)
 
     # Parse alternatives.
     if "alternatives" in data:
@@ -43,7 +49,7 @@ def parse_vosk_json(json_str: str) -> RecognizedSpeech:
                     res.start = float(w.get("start", 0.0))
                     res.end = float(w.get("end", 0.0))
                     res.word = w.get("word", "")
-                    a.results.append(res)
+                    a.result.append(res)
             msg.alternatives.append(a)
 
     return msg
@@ -89,9 +95,9 @@ if __name__ == "__main__":
     print("Recognized Text:", recognized_speech_msg.text)
     print("Speaker Embedding:", recognized_speech_msg.spk_embedding)
     print("Speaker Frames:", recognized_speech_msg.spk_frames)
-    for i, res in enumerate(recognized_speech_msg.results):
+    for i, res in enumerate(recognized_speech_msg.result):
         print(f"Word {i}: {res.word}, conf={res.conf}, start={res.start}, end={res.end}")
     for i, alt in enumerate(recognized_speech_msg.alternatives):
         print(f"Alternative {i}: {alt.text}, conf={alt.confidence}")
-        for j, w in enumerate(alt.results):
+        for j, w in enumerate(alt.result):
             print(f"  Word {j}: {w.word}, conf={w.conf}, start={w.start}, end={w.end}")
