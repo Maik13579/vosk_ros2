@@ -65,6 +65,8 @@ class VoskSpeechRecognizer:
         if not sentence_list:
             self.recognizer = vosk.KaldiRecognizer(self.model, self.sample_rate)
         else:
+            if sentence_list[-1] != '[unk]':
+                sentence_list.append('[unk]')
             grammar_json = json.dumps(sentence_list)
             self.recognizer = vosk.KaldiRecognizer(self.model, self.sample_rate, grammar_json)
 
