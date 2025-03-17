@@ -24,24 +24,27 @@ class VoskSpeechRecognizer:
                  model_path: str,
                  sample_rate: float = 16000.0,
                  speaker_model_path: str = None,
-                 MAX_ALTERNATIVES: int = None):
+                 max_alternatives: int = None,
+                 set_words: bool = False):
         """
         :param model_path: Path to the Vosk model directory (e.g. "/opt/vosk_model/speech_model")
         :param sample_rate: Audio sample rate (e.g. 16000)
         :param speaker_model_path: Path to speaker model (e.g. "/opt/vosk_model/speaker_model"), if any
-        :param MAX_ALTERNATIVES: Maximum number of alternatives to return, disables speaker recognition
+        :param max_alternatives: Maximum number of alternatives to return, disables speaker recognition
+        :param set_words: Set the recognizer to return word-level results
         """
         # Load main Vosk model
         self.model = vosk.Model(model_path)
-        self.MAX_ALTERNATIVES = MAX_ALTERNATIVES
+        self.max_alternatives = max_alternatives
+        self.set_words = set_words
 
         # Optionally load speaker model
         self.spk_model = None
         if speaker_model_path:
             self.spk_model = vosk.SpkModel(speaker_model_path)
 
-            if self.MAX_ALTERNATIVES is not None:
-                print("Warning: Speaker model is ignored because MAX_ALTERNATIVES is set.")
+            if self.max_alternatives is not None:
+                print("Warning: Speaker model is ignored because max_alternatives is set.")
 
         self.sample_rate = sample_rate
 
@@ -65,9 +68,9 @@ class VoskSpeechRecognizer:
             grammar_json = json.dumps(sentence_list)
             self.recognizer = vosk.KaldiRecognizer(self.model, self.sample_rate, grammar_json)
 
-        self.recognizer.SetWords(True)
-        if self.MAX_ALTERNATIVES:
-            self.recognizer.SetMaxAlternatives(self.MAX_ALTERNATIVES)
+        self.recognizer.SetWords(self.set_words)
+        if self.max_alternatives:
+            self.recognizer.SetMaxAlternatives(self.max_alternatives)
 
         if self.spk_model:
             self.recognizer.SetSpkModel(self.spk_model)

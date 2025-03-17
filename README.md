@@ -116,6 +116,10 @@ The parser processes reference definitions first and then expands the normal gra
   The maximum number of alternative recognition hypotheses to return. Setting this to `0` (or a value less than 1) disables alternatives, which in turn enables speaker recognition. (For some reason you can't have alternatives and speaker recognition at the same time)
   _Example:_ `0` (disabled)
 
+- **set_words**:  
+  Set the recognizer to return word-level results.
+  _Example:_ `True`
+
 - **grammar_file**:  
   The name (or relative path) of the file containing grammar definitions. If not an absolute path, it is assumed to be located in the package’s grammar directory.  
   _Example:_ `ask_name`

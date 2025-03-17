@@ -29,6 +29,7 @@ class VoskNode(Node):
         self.declare_parameter('block_size', 16000)
         self.declare_parameter('silence_timeout', 5.0)
         self.declare_parameter('max_alternatives', 0)
+        self.declare_parameter('set_words', True)
         self.declare_parameter('grammar_file', 'ask_name')
         self.declare_parameter('db_file', '/speakers/speakers.json')
 
@@ -41,6 +42,7 @@ class VoskNode(Node):
         max_alternatives = self.get_parameter('max_alternatives').get_parameter_value().integer_value
         if max_alternatives < 1:
             max_alternatives = None # Disable
+        set_words = self.get_parameter('set_words').get_parameter_value().bool_value
         grammar_file = self.get_parameter('grammar_file').get_parameter_value().string_value
         db_file = self.get_parameter('db_file').get_parameter_value().string_value
 
@@ -51,7 +53,7 @@ class VoskNode(Node):
             f"Initializing recognizer with model: {model_path}, speaker: {speaker_model_path}, sample_rate: {sample_rate}"
         )
         # Initialize VoskSpeechRecognizer.
-        self.recognizer = VoskSpeechRecognizer(model_path, sample_rate, speaker_model_path, max_alternatives)
+        self.recognizer = VoskSpeechRecognizer(model_path, sample_rate, speaker_model_path, max_alternatives, set_words)
 
         # Set the grammar.
         if grammar_file != '':
