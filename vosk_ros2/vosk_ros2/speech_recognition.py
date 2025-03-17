@@ -125,6 +125,7 @@ class VoskSpeechRecognizer:
                     data = self.audio_queue.get()
                     if self.recognizer.AcceptWaveform(data):
                         self.running = False
+                        break
     
                     pr = self.get_partial_result()
                     if '"partial"' in pr:
