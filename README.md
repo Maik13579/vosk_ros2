@@ -65,7 +65,7 @@ This expands to both "hello" and "hello there".
 
 - **References (`<tag>`):**  
 You can define a reference with a line like:  
-\<day\>: monday | tuesday | wednesday
+`&lt;day&gt;`: monday | tuesday | wednesday
 
 Then use `<day>` in other grammar lines to substitute the defined alternatives.  
 *Note:* The parser converts all tokens to lower case.
