@@ -23,7 +23,7 @@ class VoskNode(Node):
         self.declare_parameter('speaker_model_path', '/opt/vosk_model/speaker_model')
         self.declare_parameter('sample_rate', 48000.0)
         self.declare_parameter('block_size', 8000)
-        self.declare_parameter('silence_timeout', 3.0)
+        self.declare_parameter('silence_timeout', 5.0)
         self.declare_parameter('max_alternatives', 0)
         self.declare_parameter('grammar_file', '')
 
@@ -86,7 +86,6 @@ class VoskNode(Node):
                 self.get_logger().info("Capturing new utterance...")
                 self.recognizer.run_mic(
                     block_size=self.block_size,
-                    show_partial=publish_partial,
                     silence_timeout=self.silence_timeout
                 )
                 final_json = self.recognizer.get_final_result()
@@ -147,7 +146,6 @@ class VoskNode(Node):
         """
         self.recognizer.run_mic(
             block_size=self.block_size,
-            show_partial=False,
             silence_timeout=self.silence_timeout
         )
 

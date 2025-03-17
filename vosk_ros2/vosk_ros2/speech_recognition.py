@@ -3,7 +3,6 @@
 import sys
 import json
 import queue
-import threading
 import time
 import sounddevice as sd
 import vosk
@@ -49,10 +48,10 @@ class VoskSpeechRecognizer:
         # Create a default (free-form) recognizer
         self.set_grammar([])
 
-        # Internal queue for optional background processing
+        # Internal queue
         self.audio_queue = queue.Queue()
         self.running = False
-        self.thread = None
+        self.tts_status = False # Set to true to disable listening (that robot dont listen to itself)
 
     def set_grammar(self, sentence_list):
         """
@@ -94,15 +93,13 @@ class VoskSpeechRecognizer:
         """
         return self.recognizer.FinalResult()
 
-    def run_mic(self, block_size=8000, show_partial=True, silence_timeout=3.0):
+    def run_mic(self, block_size=8000, silence_timeout=3.0):
         """
-        Captures audio from the default microphone using sounddevice,
-        processes it in real-time, and prints partial/final results.
+        Captures audio from the default microphone using sounddevice.
         If no new partial result is detected for 'silence_timeout' seconds,
         the capture stops.
         
         :param block_size: Number of frames per read from sounddevice.
-        :param show_partial: If True, prints partial results as recognized.
         :param silence_timeout: Time in seconds to wait for a change in partial result before stopping.
         """
         try:
@@ -113,12 +110,22 @@ class VoskSpeechRecognizer:
                 channels=1,
                 callback=self._sd_callback
             ):
-                print(f"Listening at {self.sample_rate} Hz. Press Ctrl+C to stop.")
                 self.running = True
                 last_non_silence_time = time.time()
                 last_partial = ""
                 while self.running:
-                    sd.sleep(100)
+
+                    if self.tts_status: #Clear the queue
+                        with self.audio_queue.mutex:
+                            self.audio_queue.queue.clear()
+                        self.recognizer.Reset()
+                        continue
+
+                    # Get data from the queue and process it
+                    data = self.audio_queue.get()
+                    if self.recognizer.AcceptWaveform(data):
+                        self.running = False
+    
                     pr = self.get_partial_result()
                     if '"partial"' in pr:
                         partial_data = json.loads(pr)
@@ -127,8 +134,6 @@ class VoskSpeechRecognizer:
                         if text and text != last_partial:
                             last_partial = text
                             last_non_silence_time = time.time()
-                            if show_partial:
-                                print(f"Partial: {text}", flush=True)
                     # Stop if silence detected for too long.
                     if time.time() - last_non_silence_time > silence_timeout:
                         print("Silence detected, stopping recognition.")
@@ -144,50 +149,11 @@ class VoskSpeechRecognizer:
         
     def _sd_callback(self, indata, frames, time_info, status):
         """
-        Sounddevice callback. Converts the incoming buffer to bytes and feeds it to Vosk.
+        Sounddevice callback.
         """
         if status:
             print(f"[Audio Status] {status}", file=sys.stderr)
         if self.running:
             data_bytes = bytes(indata)
-            self.recognizer.AcceptWaveform(data_bytes)
+            self.audio_queue.put(data_bytes)
 
-
-
-# Example usage:
-if __name__ == "__main__":
-    """
-    1) Provide model_path and speaker_model_path to VoskSpeechRecognizer.
-    2) Optionally set grammar to constrain recognized phrases.
-    3) Use run_mic() to capture live audio from your microphone.
-    The capture will automatically stop if no new partial result is detected for the specified silence_timeout.
-    """
-    model_path = "/opt/vosk_model/speech_model"
-    speaker_model_path = "/opt/vosk_model/speaker_model"  # Or None if not available
-
-    recognizer = VoskSpeechRecognizer(
-        model_path=model_path,
-        sample_rate=48000.0,
-        speaker_model_path=speaker_model_path,
-        MAX_ALTERNATIVES=3
-    )
-
-    # Optional grammar: if empty, recognition is free-form.
-    my_grammar = ["hello world", "how are you", "turn on the light", "turn off the light"]
-    # recognizer.set_grammar(my_grammar)
-
-    # Capture mic; will stop automatically after silence_timeout seconds of no new partial updates.
-    recognizer.run_mic(block_size=8000, show_partial=True, silence_timeout=3.0)
-    final_result = recognizer.get_final_result()
-    if final_result:
-            try:
-                final_data = json.loads(final_result)
-            except Exception as e:
-                print("Error parsing final JSON:", e)
-                exit(1)
-
-
-            print("\n==================== Final Result ====================")
-            print(json.dumps(final_data, indent=2))
-            print("======================================================\n")
-    print("Done.")
