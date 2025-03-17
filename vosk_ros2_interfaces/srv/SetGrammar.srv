@@ -4,7 +4,7 @@
 # 2. "( )" for grouping
 # 3. "[ ]" for optional words
 # 4. "<tag>" for referencing named rules
-# (No repetition operators to avoid infinite expansions)
+# Examples can be found in vosk_ros2/grammar
 #####################################
 
 # Request
