@@ -1,6 +1,6 @@
 # Vosk ROS2
 
-A ROS 2 package that provides a ROS 2 interface for the Vosk speech recognition engine.  
+A ROS 2 package that provides a ROS 2 interface for the [Vosk](https://github.com/alphacep/vosk-api) speech recognition engine.  
 It supports grammar‐restricted recognition, speaker recognition, and a simple speaker database.  
 The node exposes a SpeechDetection action server and two services: SetGrammar and AddSpeaker.
 
