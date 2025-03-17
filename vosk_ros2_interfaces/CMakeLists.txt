@@ -10,6 +10,7 @@ find_package(rosidl_default_generators REQUIRED)
 find_package(std_msgs REQUIRED)
 
 set(msg_files
+    "msg/Speaker.msg"
     "msg/Result.msg"
     "msg/Alternative.msg"
     "msg/RecognizedSpeech.msg"
@@ -17,6 +18,7 @@ set(msg_files
 
 set(srv_files
     "srv/SetGrammar.srv"
+    "srv/AddSpeaker.srv"
 )
 
 set(action_files

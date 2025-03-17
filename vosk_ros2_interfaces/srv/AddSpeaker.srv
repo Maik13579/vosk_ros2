@@ -1,0 +1,7 @@
+string id           #unique speaker id
+float32[] embedding #Speaker embedding
+
+---
+
+bool success
+string message
