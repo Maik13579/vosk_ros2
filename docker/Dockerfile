@@ -29,7 +29,6 @@ RUN apt update \
     sphinxbase-utils \
     automake autoconf libtool \
     wget unzip \
-    dos2unix \
  && python3 -m pip install --no-cache-dir vosk sounddevice \
  && rm -rf /var/lib/apt/lists/*
 
