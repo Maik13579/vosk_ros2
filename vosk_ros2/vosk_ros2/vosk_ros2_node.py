@@ -22,7 +22,7 @@ class VoskNode(Node):
         self.declare_parameter('model_path', '/opt/vosk_model/speech_model')
         self.declare_parameter('speaker_model_path', '/opt/vosk_model/speaker_model')
         self.declare_parameter('sample_rate', 48000.0)
-        self.declare_parameter('block_size', 8000)
+        self.declare_parameter('block_size', 16000)
         self.declare_parameter('silence_timeout', 5.0)
         self.declare_parameter('max_alternatives', 0)
         self.declare_parameter('grammar_file', '')
