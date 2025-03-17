@@ -27,7 +27,7 @@ class VoskNode(Node):
         self.declare_parameter('block_size', 16000)
         self.declare_parameter('silence_timeout', 5.0)
         self.declare_parameter('max_alternatives', 0)
-        self.declare_parameter('grammar_file', '')
+        self.declare_parameter('grammar_file', 'ask_name')
 
         # Get parameter values.
         model_path = self.get_parameter('model_path').get_parameter_value().string_value

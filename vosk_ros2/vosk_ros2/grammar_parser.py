@@ -317,5 +317,5 @@ def tokenize(line):
             # split by space
             final_tokens.extend(t.split())
 
-    return [ft for ft in final_tokens if ft]
+    return [ft.lower() for ft in final_tokens if ft]
 
