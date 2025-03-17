@@ -42,6 +42,44 @@ The node exposes a SpeechDetection action server and two services: SetGrammar an
   After recognition, if the `RecognizedSpeech` result contains a non-empty `spk_embedding`, the node compares it with a stored database of speaker embeddings using cosine distance.  
   The result message’s `spker` field is filled with a list of `Speaker` messages (each containing a unique ID and cosine distance), sorted in order of increasing distance (most similar first).
 
+## Grammar
+This grammar language is designed to create a set of predefined sentences by using a simple syntax. It supports the following features:
+
+- **Alternatives (`|`):**  
+  Use the vertical bar to separate alternative tokens or phrases.  
+  _Example:_  hello | hi
+
+This means either "hello" or "hi" can be chosen.
+
+- **Grouping (`( ... )`):**  
+Parentheses group tokens together, which is useful for combining alternatives or sequences.  
+_Example:_  good (morning | evening)
+
+This expands to "good morning" and "good evening".
+
+- **Optional Elements (`[ ... ]`):**  
+Square brackets denote that a token or group is optional.  
+_Example:_  hello [there]
+
+This expands to both "hello" and "hello there".
+
+- **References (`<tag>`):**  
+You can define a reference with a line like:  
+<day>: monday | tuesday | wednesday
+
+Then use `<day>` in other grammar lines to substitute the defined alternatives.  
+*Note:* The parser converts all tokens to lower case.
+
+- **Lower-case Enforcement:**  
+All tokens are converted to lower-case to ensure consistency.
+
+- **No Repetition Operators:**  
+The grammar does not support operators like `+` or `*` to prevent infinite expansions.
+
+The parser processes reference definitions first and then expands the normal grammar lines by replacing references on-demand. If there is an undefined reference or a cyclic dependency, it raises a `GrammarParseError`.
+
+
+
 ## How It Works
    
 1. **Grammar:**  
