@@ -24,6 +24,7 @@ The node exposes a SpeechDetection action server and two services: SetGrammar an
   - `path`: (string) Absolute path to a grammar file.  
   - `grammar`: (string array) List of grammar lines (if no file is provided).  
   - `return_expansions` (bool): If true, returns all expanded sentences.  
+  
   *Response:*  
   - `expansions`: (string array) The list of expanded sentences.
   - `success` (bool): True if the grammar was set successfully.
@@ -34,6 +35,7 @@ The node exposes a SpeechDetection action server and two services: SetGrammar an
   *Request:*  
   - `id` (string): Unique speaker identifier.
   - `embedding` (float32 array): Speaker embedding (if empty, the last recognized embedding is used).  
+
   *Response:*  
   - `success` (bool)
   - `message` (string)
