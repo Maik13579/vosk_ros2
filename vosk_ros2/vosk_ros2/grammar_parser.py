@@ -159,7 +159,7 @@ def parse_grammar_lines(lines):
     Others are grammar lines. Build parse trees for everything, then do expansions:
       1) Expand each reference into final strings
       2) Expand each grammar line into final strings
-    Returns (normal_line_expansions, warnings_list).
+    Returns a list of strings.
     """
     context = GrammarContext()
 
@@ -201,11 +201,7 @@ def parse_grammar_lines(lines):
     defined_refs = set(context.reference_trees.keys())
     used_refs = context.used_references
     unused_refs = defined_refs - used_refs
-    warnings = []
-    for ur in sorted(unused_refs):
-        warnings.append(f"Warning: defined reference {ur} was never used.")
-
-    return normal_expansions, warnings
+    return normal_expansions
 
 ##############################################################################
 # Parsing Helpers
@@ -323,37 +319,3 @@ def tokenize(line):
 
     return [ft for ft in final_tokens if ft]
 
-##############################################################################
-# Example
-##############################################################################
-
-if __name__ == "__main__":
-    grammar_lines = [
-        # Reference definitions (any line matching <tag>: something)
-        "<robot>: R2D2 | C3PO [hi]",
-        "<question>: which <day> is it?",
-        "<day>: Monday | Tuesday | Sunday",
-
-        # Normal grammar lines (expanded fully):
-        "Hello (morning | evening) [everyone]",
-        "Bye | Farewell (friend | mate)",
-        "I like (apples | bananas)",
-        "My <robot> says [good] night",
-        "Today is <day>",
-        "Ask: <question>"
-    ]
-
-    try:
-        expansions, warnings = parse_grammar_lines(grammar_lines)
-        print("=== Expansions ===")
-        for ex in expansions:
-            print("  ", ex)
-
-        if warnings:
-            print("\n=== Warnings ===")
-            for w in warnings:
-                print("  ", w)
-
-    except GrammarParseError as e:
-        print("Grammar error:", e)
-        sys.exit(1)

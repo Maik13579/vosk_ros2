@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
+import os
 import rclpy
 from rclpy.node import Node
 from rclpy.action import ActionServer, CancelResponse
 import threading
 import time
 import json
+from ament_index_python.packages import get_package_share_directory
 
 # Import your recognizer and JSON parser.
 from vosk_ros2.speech_recognition import VoskSpeechRecognizer
@@ -19,7 +21,7 @@ class VoskNode(Node):
     def __init__(self):
         super().__init__('vosk_ros2')
         # Declare parameters.
-        self.declare_parameter('model_path', '/opt/vosk_model/speech_model')
+        self.declare_parameter('model_path', '/opt/vosk_model/big_speech_model')
         self.declare_parameter('speaker_model_path', '/opt/vosk_model/speaker_model')
         self.declare_parameter('sample_rate', 48000.0)
         self.declare_parameter('block_size', 16000)
@@ -37,13 +39,6 @@ class VoskNode(Node):
         if max_alternatives < 1:
             max_alternatives = None # Disable
         grammar_file = self.get_parameter('grammar_file').get_parameter_value().string_value
-
-        if grammar_file != '':
-            with open(grammar_file, 'r') as f:
-                grammar_lines = f.read().splitlines()
-            grammar = parse_grammar_lines(grammar_lines)
-            self.recognizer.set_grammar(grammar)
-
         self.block_size = block_size
         self.silence_timeout = silence_timeout
 
@@ -52,6 +47,16 @@ class VoskNode(Node):
         )
         # Initialize VoskSpeechRecognizer.
         self.recognizer = VoskSpeechRecognizer(model_path, sample_rate, speaker_model_path, max_alternatives)
+
+        # Set the grammar.
+        if grammar_file != '':
+            if grammar_file[0] != '/': # If the grammar file is not an absolute path
+                package_share_dir = get_package_share_directory('vosk_ros2')
+                grammar_file = os.path.join(package_share_dir, 'grammar', grammar_file)
+            with open(grammar_file, 'r') as f:
+                grammar_lines = f.read().splitlines()
+            grammar = parse_grammar_lines(grammar_lines)
+            self.recognizer.set_grammar(grammar)
 
         # Create an Action Server for SpeechDetection.
         self._action_server = ActionServer(
@@ -160,10 +165,7 @@ class VoskNode(Node):
             if lines is None or len(lines) == 0:
                 expansions = []
             # Expand the grammar using your parser.
-            expansions, warnings = parse_grammar_lines(lines)
-            if warnings:
-                for warning in warnings:
-                    self.get_logger().warn(warning)
+            expansions= parse_grammar_lines(lines)
 
             # Update the recognizer's grammar.
             self.recognizer.set_grammar(expansions)

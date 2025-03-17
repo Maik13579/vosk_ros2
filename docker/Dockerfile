@@ -43,6 +43,13 @@ RUN cd /opt/vosk_model \
  && mv vosk-model-spk-0.4 speaker_model \
  && rm vosk-model-spk-0.4.zip
 
+# Download and unzip a larger English speech model
+RUN cd /opt/vosk_model \
+ && wget https://alphacephei.com/vosk/models/vosk-model-en-us-0.22-lgraph.zip \
+ && unzip vosk-model-en-us-0.22-lgraph.zip \
+ && mv vosk-model-en-us-0.22-lgraph big_speech_model \
+ && rm vosk-model-en-us-0.22-lgraph.zip
+
 # Copy package.xml files to trigger dependency installation
 COPY vosk_ros2_interfaces/package.xml ${ROS_WS}/src/vosk_ros2_interfaces/package.xml
 COPY vosk_ros2/package.xml ${ROS_WS}/src/vosk_ros2/package.xml
