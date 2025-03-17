@@ -12,9 +12,11 @@ from ament_index_python.packages import get_package_share_directory
 from vosk_ros2.speech_recognition import VoskSpeechRecognizer
 from vosk_ros2.json_parser import parse_vosk_json
 from vosk_ros2.grammar_parser import parse_grammar_lines
-from vosk_ros2_interfaces.msg import RecognizedSpeech
+from vosk_ros2.speaker_rec import SpeakerDatabase 
+
+from vosk_ros2_interfaces.msg import RecognizedSpeech, Speaker
 from vosk_ros2_interfaces.action import SpeechDetection
-from vosk_ros2_interfaces.srv import SetGrammar
+from vosk_ros2_interfaces.srv import SetGrammar, AddSpeaker
 
 
 class VoskNode(Node):
@@ -28,6 +30,7 @@ class VoskNode(Node):
         self.declare_parameter('silence_timeout', 5.0)
         self.declare_parameter('max_alternatives', 0)
         self.declare_parameter('grammar_file', 'ask_name')
+        self.declare_parameter('db_file', '/speakers/speakers.json')
 
         # Get parameter values.
         model_path = self.get_parameter('model_path').get_parameter_value().string_value
@@ -39,6 +42,8 @@ class VoskNode(Node):
         if max_alternatives < 1:
             max_alternatives = None # Disable
         grammar_file = self.get_parameter('grammar_file').get_parameter_value().string_value
+        db_file = self.get_parameter('db_file').get_parameter_value().string_value
+
         self.block_size = block_size
         self.silence_timeout = silence_timeout
 
@@ -58,6 +63,10 @@ class VoskNode(Node):
             grammar = parse_grammar_lines(grammar_lines)
             self.recognizer.set_grammar(grammar)
 
+        # Initialize the speaker database.
+        self.speaker_db = SpeakerDatabase(path=db_file)
+        self.last_spker_emb = None
+
         # Create an Action Server for SpeechDetection.
         self._action_server = ActionServer(
             self,
@@ -69,6 +78,8 @@ class VoskNode(Node):
         )
         # Create a Service for grammar setting.
         self._grammar_service = self.create_service(SetGrammar, 'set_grammar', self.grammar_callback)
+        self._add_speaker_service = self.create_service(AddSpeaker, 'add_speaker', self.add_speaker_callback)
+
 
 
     def goal_callback(self, goal_request):
@@ -96,6 +107,18 @@ class VoskNode(Node):
                 final_json = self.recognizer.get_final_result()
                 self.get_logger().info("Utterance complete. Final JSON: " + final_json)
                 final_msg = parse_vosk_json(final_json)
+                # If spk_embedding is present, compare with speaker DB.
+                if final_msg.spk_embedding:
+                    sorted_speakers = self.speaker_db.get_sorted_speakers(final_msg.spk_embedding)
+                    # Convert sorted tuples into Speaker messages.
+                    spker_list = []
+                    for spk_id, dist in sorted_speakers:
+                        spk_msg = Speaker()
+                        spk_msg.id = spk_id
+                        spk_msg.cosine_distance = float(dist)
+                        spker_list.append(spk_msg)
+                    final_msg.spker = spker_list
+                    self.last_spker_emb = final_msg.spk_embedding
                 feedback = SpeechDetection.Feedback()
                 feedback.continuous_result = final_msg
                 feedback.partial_text = final_msg.text
@@ -139,6 +162,17 @@ class VoskNode(Node):
             final_json = self.recognizer.get_final_result()
             self.get_logger().info("Recognition complete. Final JSON: " + final_json)
             final_msg = parse_vosk_json(final_json)
+            # If speaker embedding is present, compare it to the database.
+            if final_msg.spk_embedding:
+                sorted_speakers = self.speaker_db.get_sorted_speakers(final_msg.spk_embedding)
+                spker_list = []
+                for spk_id, dist in sorted_speakers:
+                    spk_msg = Speaker()
+                    spk_msg.id = spk_id
+                    spk_msg.cosine_distance = float(dist)
+                    spker_list.append(spk_msg)
+                final_msg.spker = spker_list
+                self.last_spker_emb = final_msg.spk_embedding
             goal_handle.succeed() 
             return SpeechDetection.Result(
                 final_result=final_msg, success=True, message=""
@@ -174,6 +208,19 @@ class VoskNode(Node):
             response.message = ""
         except Exception as e:
             response.expansions = []
+            response.success = False
+            response.message = str(e)
+        return response
+    
+    def add_speaker_callback(self, request, response):
+        self.get_logger().info(f"Received AddSpeaker service request for id: {request.id}")
+        try:
+            if request.embedding is None or len(request.embedding) == 0:
+                request.embedding = self.last_spker_emb
+            self.speaker_db.add_speaker(request.id, request.embedding)
+            response.success = True
+            response.message = f"Speaker {request.id} added."
+        except Exception as e:
             response.success = False
             response.message = str(e)
         return response

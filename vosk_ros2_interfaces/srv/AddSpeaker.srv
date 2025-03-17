@@ -1,5 +1,6 @@
 string id           #unique speaker id
-float32[] embedding #Speaker embedding
+float32[] embedding #Speaker embedding, leave empty for last embedding
+# Usefull when you used the action and the person is unkown (high cosine dist)
 
 ---
 

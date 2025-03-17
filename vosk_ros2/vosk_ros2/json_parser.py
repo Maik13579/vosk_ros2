@@ -6,9 +6,6 @@ def parse_vosk_json(json_str: str) -> RecognizedSpeech:
 
     msg = RecognizedSpeech()
     msg.text = data.get("text", "")
-    # Our JSON returns a speaker embedding in "spk"
-    # We'll store that in spk_embedding and leave spk (speaker ID) empty.
-    msg.spk = "" #TODO
     msg.spk_embedding = data.get("spk", [])
     msg.spk_frames = data.get("spk_frames", 0)
 
