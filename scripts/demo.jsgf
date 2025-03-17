@@ -1,0 +1,14 @@
+#JSGF V1.0;
+/**
+ * JSGF Grammar for Hello World example
+ * From https://github.com/alphacep/vosk-api/issues/55
+ */
+grammar lamp_commands;
+
+public <command> = <key> <commands>;
+<key> = lighting;
+<commands> = ( <simple_commands> | <settable_commands_list>);
+<simple_commands> = ( on | off | hotter | colder );
+<settable_command> = ( bright | color );
+<settable_commands_list> = <settable_command> set <numbers>;
+<numbers> = ( zero | one | two | three | four | five | six | seven | eight | nine | ten );

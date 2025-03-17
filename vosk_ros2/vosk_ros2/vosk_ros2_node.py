@@ -23,14 +23,14 @@ class VoskNode(Node):
     def __init__(self):
         super().__init__('vosk_ros2')
         # Declare parameters.
-        self.declare_parameter('model_path', '/opt/vosk_model/big_speech_model')
+        self.declare_parameter('model_path', '/opt/vosk_model/gpsr')
         self.declare_parameter('speaker_model_path', '/opt/vosk_model/speaker_model')
         self.declare_parameter('sample_rate', 48000.0)
         self.declare_parameter('block_size', 16000)
         self.declare_parameter('silence_timeout', 5.0)
-        self.declare_parameter('max_alternatives', 0)
-        self.declare_parameter('set_words', True)
-        self.declare_parameter('grammar_file', 'ask_name')
+        self.declare_parameter('max_alternatives', 10)
+        self.declare_parameter('set_words', False)
+        self.declare_parameter('grammar_file', '')
         self.declare_parameter('db_file', '/speakers/speakers.json')
 
         # Get parameter values.

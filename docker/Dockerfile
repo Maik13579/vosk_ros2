@@ -19,14 +19,29 @@ RUN apt update \
  && apt install -y ros-$ROS_DISTRO-rmw-cyclonedds-cpp \
  && rm -rf /var/lib/apt/lists/*
 
-# Install Python deps (pip, etc.), audio libs, Vosk,
-# and also wget/unzip for downloading models
+# Install Python deps, audio libs, Vosk, wget/unzip, and required tools
 RUN apt update \
+ && apt install -y software-properties-common \
+ && apt-add-repository universe \
+ && apt update \
  && apt install -y \
     python3-pip python3-dev build-essential portaudio19-dev libasound2-dev \
+    sphinxbase-utils \
+    automake autoconf libtool \
     wget unzip \
+    dos2unix \
  && python3 -m pip install --no-cache-dir vosk sounddevice \
  && rm -rf /var/lib/apt/lists/*
+
+# Download, build, and install OpenFST
+RUN wget https://www.openfst.org/twiki/pub/FST/FstDownload/openfst-1.8.2.tar.gz \
+ && tar -xzvf openfst-1.8.2.tar.gz \
+ && cd openfst-1.8.2 \
+ && ./configure --enable-far --enable-static --enable-shared \
+ && make -j4 \
+ && make install \
+ && cd .. \
+ && rm -rf openfst-1.8.2 openfst-1.8.2.tar.gz
 
 # Download and unzip a small English speech model
 RUN mkdir -p /opt/vosk_model \
@@ -68,3 +83,11 @@ RUN source /opt/ros/$ROS_DISTRO/setup.bash \
  && colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release
 
 RUN echo "source ${ROS_WS}/install/setup.bash" >> /root/.bashrc
+
+COPY scripts /scripts
+ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+RUN ldconfig
+
+# Create new grammar
+RUN /scripts/build_fst.sh /scripts/demo.jsgf /opt/vosk_model/big_speech_model
+RUN /scripts/build_fst.sh /scripts/gpsr.jsgf /opt/vosk_model/big_speech_model

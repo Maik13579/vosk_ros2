@@ -130,6 +130,21 @@ The parser processes reference definitions first and then expands the normal gra
   _Example:_ `/speakers/speakers.json`
 
 
+## Adaptation
+The grammar is only supported for models with dynamic graph (see https://alphacephei.com/vosk/adaptation). Furthermore, the grammar is only updating the vocabulary of the model. So if your grammar is ["one", "two three", "four"] the model can still return "two four".
+
+In order to set a precisely defined grammar, you can use the `scripts/build_fst.sh` script. This script converts a [JSGF](https://www.w3.org/TR/jsgf/) file into an FSM and compiles it into an FST. The models that you can download from https://alphacephei.com/vosk/models already come with an Grammar (`Gr.fst` in the `graph` folder). With this script you can create a new model with a custom grammar.
+
+***IMPORTANT***: You cannot add new words to the model using the `scripts/build_fst.sh` script. The JSGF file is only allowed to contain words that are already in the model (typically the `graph/words.txt` file). And only lowercase letters are allowed (and no punctuation).
+
+I tested it with this model `vosk-model-en-us-0.22-lgraph`, don't know if the script works for other models.
+
+If you need to add new words to the vosk model, check out this page https://alphacephei.com/vosk/lm.
+
+An example of JSGF files can be found in the [scripts](./scripts) folder.
+- demo.jsgf is a small example stolen from https://github.com/alphacep/vosk-api/issues/55
+- gpsr.jsgf is a bigger example for the Robocup@Home [GPSR Command Generator](https://github.com/RoboCupAtHome/CommandGenerator)
+
 ## Installation
 
 1. **Dependencies:**  

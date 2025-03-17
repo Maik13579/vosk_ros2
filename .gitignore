@@ -1,2 +1,4 @@
 **/*.pyc
 speakers/speakers.json
+**/*.fsm
+**/*.fst

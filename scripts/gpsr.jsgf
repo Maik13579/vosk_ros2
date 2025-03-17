@@ -1,0 +1,111 @@
+#JSGF V1.0;
+/**
+ * JSGF Grammar for Robocup@Home GPSR (General Purpose Service Robot)
+ */
+grammar gpsr;
+
+public <command> =  <unk> | <tellPrsInfoInLoc> | <meetPrsAtBeac> | <meetNameAtLocThenFindInRm> | <tellPrsInfoAtLocToPrsAtLoc> | <answerToGestPrsInRoom> | <findPrsInRoom> | <followPrsAtLoc> | <countObjOnPlcmt> | <tellObjPropOnPlcmt> | <countClothPrsInRoom> | <guideClothPrsFromBeacToBeac> | <greetNameInRm> | <takeObjFromPlcmt> | <findObjInRoom> | <countPrsInRoom> | <bringMeObjFromPlcmt> | <followNameFromBeacToRoom> | <guideNameFromBeacToBeac> | <guidePrsFromBeacToBeac> | <greetClothDscInRm> | <talkInfoToGestPrsInRoom> | <goToLoc> | <tellCatPropOnPlcmt>;
+
+<unk> = ( unk_arc );
+<tellPrsInfoInLoc> = <tell> me the <person_info_list> of the person (<inLocPrep> the <room_names> | <atLocPrep> the <location_names>);
+
+<meetPrsAtBeac> = <meet> <person_names> <inLocPrep> the <room_names> and <talk> <talk_list> | <meet> <person_names> <inLocPrep> the <room_names> and <answer> a <question_list> | <meet> <person_names> <inLocPrep> the <room_names> and <follow> them | <meet> <person_names> <inLocPrep> the <room_names> and <follow> them <toLocPrep> the (<location_names> | <room_names>) | <meet> <person_names> <inLocPrep> the <room_names> and <guide> them <toLocPrep> the (<location_names> | <room_names>);
+
+<meetNameAtLocThenFindInRm> = <meet> <person_names> <atLocPrep> the <location_names> then <find> them <inLocPrep> the <room_names>;
+
+<tellPrsInfoAtLocToPrsAtLoc> = <tell> the <person_info_list> of the person <atLocPrep> the <location_names> to the person <atLocPrep> the <location_names>;
+
+<answerToGestPrsInRoom> = <answer> the <question_list> <ofPrsPrep> the <gesture_person_list> <inLocPrep> the <room_names>;
+
+<findPrsInRoom> = <find> a (<gesture_person_list> | <pose_person_list>) <inLocPrep> the <room_names> and <talk> <talk_list> | <find> a (<gesture_person_list> | <pose_person_list>) <inLocPrep> the <room_names> and <answer> a <question_list> | <find> a (<gesture_person_list> | <pose_person_list>) <inLocPrep> the <room_names> and <follow> them | <find> a (<gesture_person_list> | <pose_person_list>) <inLocPrep> the <room_names> and <follow> them <toLocPrep> the (<location_names> | <room_names>) | <find> a (<gesture_person_list> | <pose_person_list>) <inLocPrep> the <room_names> and <guide> them <toLocPrep> the (<location_names> | <room_names>);
+
+<followPrsAtLoc> = <follow> the (<gesture_person_list> | <pose_person_list>) (<inLocPrep> the <room_names> | <atLocPrep> the <location_names>);
+
+<countObjOnPlcmt> = <count> <object_categories_plural> there are <onLocPrep> the <placement_location_names>;
+
+<tellObjPropOnPlcmt> = <tell> me what is the <object_comp_list> object <onLocPrep> the <placement_location_names>;
+
+<countClothPrsInRoom> = <count> people <inLocPrep> the <room_names> are wearing <color_clothes_list>;
+
+<guideClothPrsFromBeacToBeac> = <guide> the person wearing a <color_clothe_list> <fromLocPrep> the <location_names> <toLocPrep> the (<location_names> | <room_names>);
+
+<greetNameInRm> = <greet> <person_names> <inLocPrep> the <room_names> and <talk> <talk_list> | <greet> <person_names> <inLocPrep> the <room_names> and <answer> a <question_list> | <greet> <person_names> <inLocPrep> the <room_names> and <follow> them | <greet> <person_names> <inLocPrep> the <room_names> and <follow> them <toLocPrep> the (<location_names> | <room_names>) | <greet> <person_names> <inLocPrep> the <room_names> and <guide> them <toLocPrep> the (<location_names> | <room_names>);
+
+<takeObjFromPlcmt> = <take> <art> (<object_names> | <object_categories_singular>) <fromLocPrep> the <placement_location_names> and <place> it <onLocPrep> the <placement_location_names> | <take> <art> (<object_names> | <object_categories_singular>) <fromLocPrep> the <placement_location_names> and <deliver> it to me | <take> <art> (<object_names> | <object_categories_singular>) <fromLocPrep> the <placement_location_names> and <deliver> it <deliverPrep> the (<gesture_person_list> | <pose_person_list>) <inLocPrep> the <room_names> | <take> <art> (<object_names> | <object_categories_singular>) <fromLocPrep> the <placement_location_names> and <deliver> it <deliverPrep> <person_names> <inLocPrep> the <room_names>;
+
+<findObjInRoom> = <find> <art> (<object_names> | <object_categories_singular>) <inLocPrep> the <room_names> then <take> it and <place> it <onLocPrep> the <placement_location_names> | <find> <art> (<object_names> | <object_categories_singular>) <inLocPrep> the <room_names> then <take> it and <deliver> it to me | <find> <art> (<object_names> | <object_categories_singular>) <inLocPrep> the <room_names> then <take> it and <deliver> it <deliverPrep> the (<gesture_person_list> | <pose_person_list>) <inLocPrep> the <room_names> | <find> <art> (<object_names> | <object_categories_singular>) <inLocPrep> the <room_names> then <take> it and <deliver> it <deliverPrep> <person_names> <inLocPrep> the <room_names>;
+
+<countPrsInRoom> = <count> (<gesture_person_plural_list> | <pose_person_plural_list>) are <inLocPrep> the <room_names>;
+
+<bringMeObjFromPlcmt> = <bring> me <art> <object_names> <fromLocPrep> the <placement_location_names>;
+
+<followNameFromBeacToRoom> = <follow> <person_names> <fromLocPrep> the <location_names> <toLocPrep> the <room_names>;
+
+<guideNameFromBeacToBeac> = <guide> <person_names> <fromLocPrep> the <location_names> <toLocPrep> the (<location_names> | <room_names>);
+
+<guidePrsFromBeacToBeac> = <guide> the (<gesture_person_list> | <pose_person_list>) <fromLocPrep> the <location_names> <toLocPrep> the (<location_names> | <room_names>);
+
+<greetClothDscInRm> = <greet> the person wearing <art> <color_clothe_list> <inLocPrep> the <room_names> and <talk> <talk_list> | <greet> the person wearing <art> <color_clothe_list> <inLocPrep> the <room_names> and <answer> a <question_list> | <greet> the person wearing <art> <color_clothe_list> <inLocPrep> the <room_names> and <follow> them | <greet> the person wearing <art> <color_clothe_list> <inLocPrep> the <room_names> and <follow> them <toLocPrep> the (<location_names> | <room_names>) | <greet> the person wearing <art> <color_clothe_list> <inLocPrep> the <room_names> and <guide> them <toLocPrep> the (<location_names> | <room_names>);
+
+<talkInfoToGestPrsInRoom> = <talk> <talk_list> <talkPrep> the <gesture_person_list> <inLocPrep> the <room_names>;
+
+<goToLoc> = <go> <toLocPrep> the (<location_names> | <room_names>) then <find> the (<gesture_person_list> | <pose_person_list>) and <talk> <talk_list> | <go> <toLocPrep> the (<location_names> | <room_names>) then <find> the (<gesture_person_list> | <pose_person_list>) and <answer> a <question_list> | <go> <toLocPrep> the (<location_names> | <room_names>) then <find> the (<gesture_person_list> | <pose_person_list>) and <follow> them | <go> <toLocPrep> the (<location_names> | <room_names>) then <find> the (<gesture_person_list> | <pose_person_list>) and <follow> them <toLocPrep> the (<location_names> | <room_names>) | <go> <toLocPrep> the (<location_names> | <room_names>) then <find> the (<gesture_person_list> | <pose_person_list>) and <guide> them <toLocPrep> the (<location_names> | <room_names>) | <go> <toLocPrep> the (<location_names> | <room_names>) then <meet> <person_names> and <talk> <talk_list> | <go> <toLocPrep> the (<location_names> | <room_names>) then <meet> <person_names> and <answer> a <question_list> | <go> <toLocPrep> the (<location_names> | <room_names>) then <meet> <person_names> and <follow> them | <go> <toLocPrep> the (<location_names> | <room_names>) then <meet> <person_names> and <follow> them <toLocPrep> the (<location_names> | <room_names>) | <go> <toLocPrep> the (<location_names> | <room_names>) then <meet> <person_names> and <guide> them <toLocPrep> the (<location_names> | <room_names>) | <go> <toLocPrep> the (<location_names> | <room_names>) then <find> <art> (<object_names> | <object_categories_singular>) and <take> it and <place> it <onLocPrep> the <placement_location_names> | <go> <toLocPrep> the (<location_names> | <room_names>) then <find> <art> (<object_names> | <object_categories_singular>) and <take> it and <deliver> it to me | <go> <toLocPrep> the (<location_names> | <room_names>) then <find> <art> (<object_names> | <object_categories_singular>) and <take> it and <deliver> it <deliverPrep> the (<gesture_person_list> | <pose_person_list>) <inLocPrep> the <room_names> | <go> <toLocPrep> the (<location_names> | <room_names>) then <find> <art> (<object_names> | <object_categories_singular>) and <take> it and <deliver> it <deliverPrep> <person_names> <inLocPrep> the <room_names>;
+
+<tellCatPropOnPlcmt> = <tell> me what is the <object_comp_list> <object_categories_singular> <onLocPrep> the <placement_location_names>;
+
+
+
+
+<person_names> = morgan | axel | olivia | noah | amelia | liam | emma | oliver | sophia | elijah | charlotte | mateo | isabella | lucas | ava | levi | mia | ezra | ellie | asher | luna | leo | harper | james | aurora | luca | evelyn | henry | eliana | hudson | aria | ethan;
+<location_names> = chair | desk | office chair | bookshelf | plant | dresser | bed | side table | fridge | sink | dishwasher | kitchen counter | kitchen table | trash can | tv sideboard | couch table | sofa | bar | armchair | coat rack | cabinet | entrance | exit;
+<placement_location_names> = chair | desk | bookshelf | dresser | bed | side table | fridge | sink | dishwasher | kitchen counter | kitchen table | trash can | tv sideboard | couch table | bar | armchair | cabinet;
+<room_names> = bedroom | kitchen | office | living room | hallway;
+<object_names> = cornflakes container | cleaning rag | kitchen cleaner | sponge | dust cloth | oat milk | mezzo mix | milk | iced tea | sprite | tea | coke | pasta | cornflakes | sweetener | tomato soup | instant noodles | red cabbage | pear | plum | apple | lemon | peach | orange | banana | crisps | chocolate peanuts | cracker | cotton pads | tissue | q tips | toothpaste | spoon | plate | cup | fork | bowl | knife;
+<object_categories_plural> = container | cleaning supplies | drinks | food | fruits | snacks | toiletries | dishes;
+<object_categories_singular> = container | cleaning supply | drink | food | fruit | snack | toiletry | dish;
+<connector_list> = and;
+<gesture_person_list> = waving person | person raising their left arm | person raising their right arm | person pointing to the left | person pointing to the right;
+<pose_person_list> = sitting person | standing person | lying person;
+<gesture_person_plural_list> = waving persons | persons raising their left arm | persons raising their right arm | persons pointing to the left | persons pointing to the right;
+<pose_person_plural_list> = sitting persons | standing persons | lying persons;
+<person_info_list> = name | pose | gesture;
+<object_comp_list> = biggest | largest | smallest | heaviest | lightest | thinnest;
+<talk_list> = something about yourself | the time | what day is today | what day is tomorrow | your teams name | your teams country | your teams affiliation | the day of the week | the day of the month;
+<question_list> = question | quiz;
+<color_list> = blue | yellow | black | white | red | orange | gray;
+<clothe_list> = t shirt | shirt | blouse | sweater | coat | jacket;
+<clothes_list> = t shirts | shirts | blouses | sweaters | coats | jackets;
+<color_clothe_list> = blue t shirt | blue shirt | blue blouse | blue sweater | blue coat | blue jacket | yellow t shirt | yellow shirt | yellow blouse | yellow sweater | yellow coat | yellow jacket | black t shirt | black shirt | black blouse | black sweater | black coat | black jacket | white t shirt | white shirt | white blouse | white sweater | white coat | white jacket | red t shirt | red shirt | red blouse | red sweater | red coat | red jacket | orange t shirt | orange shirt | orange blouse | orange sweater | orange coat | orange jacket | gray t shirt | gray shirt | gray blouse | gray sweater | gray coat | gray jacket;
+<color_clothes_list> = blue t shirts | blue shirts | blue blouses | blue sweaters | blue coats | blue jackets | yellow t shirts | yellow shirts | yellow blouses | yellow sweaters | yellow coats | yellow jackets | black t shirts | black shirts | black blouses | black sweaters | black coats | black jackets | white t shirts | white shirts | white blouses | white sweaters | white coats | white jackets | red t shirts | red shirts | red blouses | red sweaters | red coats | red jackets | orange t shirts | orange shirts | orange blouses | orange sweaters | orange coats | orange jackets | gray t shirts | gray shirts | gray blouses | gray sweaters | gray coats | gray jackets;
+<take> = take | get | grasp | fetch;
+<place> = put | place;
+<deliver> = bring | give | deliver;
+<bring> = bring | give;
+<go> = go | navigate;
+<find> = find | locate | look for;
+<talk> = tell | say;
+<answer> = answer;
+<meet> = meet;
+<tell> = tell;
+<greet> = greet | salute | say hello to | introduce yourself to;
+<remember> = meet | contact | get to know | get acquainted with;
+<count> = tell me how many;
+<describe> = tell me how | describe;
+<offer> = offer;
+<follow> = follow;
+<guide> = guide | escort | take | lead;
+<accompany> = accompany;
+<deliverPrep> = to;
+<placePrep> = on;
+<inLocPrep> = in;
+<fromLocPrep> = from;
+<toLocPrep> = to;
+<atLocPrep> = at;
+<talkPrep> = to;
+<locPrep> = in | at;
+<onLocPrep> = on;
+<arePrep> = are;
+<ofPrsPrep> = of;
+<pronouns> = he | she | it | they | me | him | her | us | them;
+<art> = a | an;
+

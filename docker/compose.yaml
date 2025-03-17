@@ -16,5 +16,6 @@ services:
       - /dev/snd:/dev/snd
       - ../vosk_ros2:/root/ros2_ws/src/vosk_ros2
       - ../speakers:/speakers
+      - ../scripts:/scripts
     command: ros2 run vosk_ros2 vosk_ros2_node
 
