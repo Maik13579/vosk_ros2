@@ -78,8 +78,6 @@ The grammar does not support operators like `+` or `*` to prevent infinite expan
 
 The parser processes reference definitions first and then expands the normal grammar lines by replacing references on-demand. If there is an undefined reference or a cyclic dependency, it raises a `GrammarParseError`.
 
-
-
 ## How It Works
    
 1. **Grammar:**  
@@ -90,6 +88,43 @@ The parser processes reference definitions first and then expands the normal gra
    - A simple database (encapsulated in the `SpeakerDatabase` class) stores speaker embeddings.
    - When a recognition result is produced with a speaker embedding, it is compared against the database using cosine distance.
    - The sorted results are added to the result message’s `spker` field.
+
+## Parameters
+
+- **model_path**:  
+  The file system path to the Vosk speech model directory.  
+  _Example:_ `/opt/vosk_model/speech_model`
+
+- **speaker_model_path**:  
+  The path to the speaker model used for speaker recognition.  
+  _Example:_ `/opt/vosk_model/speaker_model`
+
+- **sample_rate**:  
+  The audio sample rate in Hertz used for capturing and processing audio.  
+  _Example:_ `48000.0`
+
+- **block_size**:  
+  The number of audio frames processed per block. A larger block size may reduce CPU load but can increase latency.  
+  _Example:_ `16000`
+
+- **silence_timeout**:  
+  The time in seconds to wait without receiving any partial updates before stopping recognition.
+  This is only used when nobody speaks at all, vosk will stop by its own as soon as something was said.
+  _Example:_ `5.0`
+
+- **max_alternatives**:  
+  The maximum number of alternative recognition hypotheses to return. Setting this to `0` (or a value less than 1) disables alternatives, which in turn enables speaker recognition. (For some reason you can't have alternatives and speaker recognition at the same time)
+  _Example:_ `0` (disabled)
+
+- **grammar_file**:  
+  The name (or relative path) of the file containing grammar definitions. If not an absolute path, it is assumed to be located in the package’s grammar directory.  
+  _Example:_ `ask_name`
+
+- **db_file**:  
+  The file path for storing the speaker database. This file is used to save and load speaker embeddings.  
+  If empty, no persistence is used.
+  _Example:_ `/speakers/speakers.json`
+
 
 ## Installation
 
