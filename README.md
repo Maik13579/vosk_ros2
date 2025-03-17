@@ -24,7 +24,7 @@ The node exposes a SpeechDetection action server and two services: SetGrammar an
   - `path`: (string) Absolute path to a grammar file.  
   - `grammar`: (string array) List of grammar lines (if no file is provided).  
   - `return_expansions` (bool): If true, returns all expanded sentences.  
-  
+
   *Response:*  
   - `expansions`: (string array) The list of expanded sentences.
   - `success` (bool): True if the grammar was set successfully.
@@ -67,7 +67,7 @@ This expands to both "hello" and "hello there".
 
 - **References (`<tag>`):**  
 You can define a reference with a line like:  
-`&lt;day&gt;`: monday | tuesday | wednesday
+`<day>`: monday | tuesday | wednesday
 
 Then use `<day>` in other grammar lines to substitute the defined alternatives.  
 *Note:* The parser converts all tokens to lower case.
