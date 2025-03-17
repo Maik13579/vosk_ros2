@@ -74,29 +74,6 @@ class VoskSpeechRecognizer:
             self.recognizer.SetSpkModel(self.spk_model)
 
 
-
-    def start_recognition(self):
-        """
-        Starts a background thread to consume queued audio data (if using add_audio_chunk()).
-        """
-        self.running = True
-        self.thread = threading.Thread(target=self._process_audio_queue, daemon=True)
-        self.thread.start()
-
-    def stop_recognition(self):
-        """
-        Stops processing and joins the background thread.
-        """
-        self.running = False
-        if self.thread and self.thread.is_alive():
-            self.thread.join()
-
-    def add_audio_chunk(self, chunk: bytes):
-        """
-        Queues raw audio data (16-bit PCM) for recognition if using the background thread approach.
-        """
-        self.audio_queue.put(chunk)
-
     def get_partial_result(self) -> str:
         """
         Returns the latest partial result as a JSON string, e.g.:
@@ -165,7 +142,6 @@ class VoskSpeechRecognizer:
             self.running = False
 
         
-
     def _sd_callback(self, indata, frames, time_info, status):
         """
         Sounddevice callback. Converts the incoming buffer to bytes and feeds it to Vosk.
@@ -176,18 +152,6 @@ class VoskSpeechRecognizer:
             data_bytes = bytes(indata)
             self.recognizer.AcceptWaveform(data_bytes)
 
-    def _process_audio_queue(self):
-        """
-        Thread function to continuously read from self.audio_queue and feed the recognizer.
-        Only needed if you're using add_audio_chunk() manually instead of run_mic().
-        """
-        while self.running:
-            try:
-                data = self.audio_queue.get(timeout=0.1)
-            except queue.Empty:
-                continue
-            self.recognizer.AcceptWaveform(data)
-        self.audio_queue.queue.clear()
 
 
 # Example usage:
