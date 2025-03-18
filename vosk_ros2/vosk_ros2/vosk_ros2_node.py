@@ -17,6 +17,7 @@ from vosk_ros2_interfaces.msg import RecognizedSpeech, Speaker
 from vosk_ros2_interfaces.action import SpeechDetection
 from vosk_ros2_interfaces.srv import SetGrammar, AddSpeaker
 
+from std_msgs.msg import Bool
 
 class VoskNode(Node):
     def __init__(self):
@@ -72,16 +73,21 @@ class VoskNode(Node):
         self._action_server = ActionServer(
             self,
             SpeechDetection,
-            'speech_detection',
+            '~/speech_detection',
             execute_callback=self.execute_callback,
             goal_callback=self.goal_callback,
             cancel_callback=self.cancel_callback
         )
         # Create a Service for grammar setting.
-        self._grammar_service = self.create_service(SetGrammar, 'set_grammar', self.grammar_callback)
-        self._add_speaker_service = self.create_service(AddSpeaker, 'add_speaker', self.add_speaker_callback)
+        self._grammar_service = self.create_service(SetGrammar, '~/set_grammar', self.grammar_callback)
+        self._add_speaker_service = self.create_service(AddSpeaker, '~/add_speaker', self.add_speaker_callback)
 
+        # Create Subscriber for tts_status
+        self.tts_status_sub = self.create_subscription(Bool, '~/tts_status_in', self.tts_status_callback, 10)
 
+    def tts_status_callback(self, msg):
+        self.get_logger().info("Received tts_status: " + str(msg.data))
+        self.recognizer.tts_status = msg.data
 
     def goal_callback(self, goal_request):
         self.get_logger().info("Received new speech detection goal.")
