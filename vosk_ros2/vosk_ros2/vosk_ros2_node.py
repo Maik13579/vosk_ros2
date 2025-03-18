@@ -8,7 +8,6 @@ import time
 import json
 from ament_index_python.packages import get_package_share_directory
 
-# Import your recognizer and JSON parser.
 from vosk_ros2.speech_recognition import VoskSpeechRecognizer
 from vosk_ros2.json_parser import parse_vosk_json
 from vosk_ros2.grammar_parser import parse_grammar_lines
