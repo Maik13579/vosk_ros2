@@ -6,6 +6,7 @@ import queue
 import time
 import sounddevice as sd
 import vosk
+import wave
 
 
 class VoskSpeechRecognizer:
@@ -98,7 +99,7 @@ class VoskSpeechRecognizer:
         """
         return self.recognizer.FinalResult()
 
-    def run_mic(self, block_size=8000, silence_timeout=3.0):
+    def run_mic(self, block_size=8000, silence_timeout=3.0, wave_file=None):
         """
         Captures audio from the default microphone using sounddevice.
         If no new partial result is detected for 'silence_timeout' seconds,
@@ -106,7 +107,14 @@ class VoskSpeechRecognizer:
         
         :param block_size: Number of frames per read from sounddevice.
         :param silence_timeout: Time in seconds to wait for a change in partial result before stopping.
+        :param wave_file: Path to save the audio file.
         """
+        wf = None
+        if wave_file:
+            wf = wave.open(wave_file, 'wb')
+            wf.setnchannels(1)
+            wf.setsampwidth(2)  # int16 is 2 bytes
+            wf.setframerate(int(self.sample_rate))
         try:
             with sd.RawInputStream(
                 samplerate=self.sample_rate,
@@ -128,6 +136,9 @@ class VoskSpeechRecognizer:
 
                     # Get data from the queue and process it
                     data = self.audio_queue.get()
+                    # Write data to wave file if recording is enabled
+                    if wf:
+                        wf.writeframes(data)
                     if self.recognizer.AcceptWaveform(data):
                         self.running = False
                         break
@@ -151,6 +162,9 @@ class VoskSpeechRecognizer:
         except Exception as e:
             print(f"[Error] {e}", file=sys.stderr)
             self.running = False
+        finally:
+            if wf:
+                wf.close()
 
         
     def _sd_callback(self, indata, frames, time_info, status):

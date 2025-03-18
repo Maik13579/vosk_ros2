@@ -103,14 +103,24 @@ class VoskNode(Node):
         continuous = goal_handle.request.continuous
         publish_partial = goal_handle.request.publish_partial
 
+        wave_file = goal_handle.request.wave_file
+        if wave_file == '' or len(wave_file) < 5 or wave_file[-4:] != '.wav':
+            wave_file = None
+        else:
+            self.get_logger().info(f"Saving to {wave_file}")
+        self.wave_file = wave_file
+
         if continuous:
             # Continuous mode: repeatedly capture utterances.
+            counter = 0
             while not goal_handle.is_cancel_requested:
                 self.get_logger().info("Capturing new utterance...")
                 self.recognizer.run_mic(
                     block_size=self.block_size,
-                    silence_timeout=self.silence_timeout
+                    silence_timeout=self.silence_timeout,
+                    wave_file=wave_file[:-4] + "_" + str(counter) + ".wav"
                 )
+                counter += 1
                 final_json = self.recognizer.get_final_result()
                 self.get_logger().info("Utterance complete. Final JSON: " + final_json)
                 final_msg = parse_vosk_json(final_json)
@@ -192,7 +202,8 @@ class VoskNode(Node):
         """
         self.recognizer.run_mic(
             block_size=self.block_size,
-            silence_timeout=self.silence_timeout
+            silence_timeout=self.silence_timeout,
+            wave_file=self.wave_file
         )
 
     def grammar_callback(self, request, response):
