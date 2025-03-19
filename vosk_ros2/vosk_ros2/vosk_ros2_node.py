@@ -3,6 +3,8 @@ import os
 import rclpy
 from rclpy.node import Node
 from rclpy.action import ActionServer, CancelResponse
+from rclpy.callback_groups import ReentrantCallbackGroup
+
 import threading
 import time
 import json
@@ -82,8 +84,12 @@ class VoskNode(Node):
         self._grammar_service = self.create_service(SetGrammar, '~/set_grammar', self.grammar_callback)
         self._add_speaker_service = self.create_service(AddSpeaker, '~/add_speaker', self.add_speaker_callback)
 
-        # Create Subscriber for tts_status
-        self.tts_status_sub = self.create_subscription(Bool, '~/tts_status_in', self.tts_status_callback, 10)
+        # Create a callback group for the tts_status subscription.
+        self.tts_callback_group = ReentrantCallbackGroup()
+        self.tts_status_sub = self.create_subscription(
+            Bool, '~/tts_status_in', self.tts_status_callback, 10,
+            callback_group=self.tts_callback_group
+        )
 
     def tts_status_callback(self, msg):
         self.get_logger().info("Received tts_status: " + str(msg.data))
@@ -242,13 +248,18 @@ class VoskNode(Node):
             response.success = False
             response.message = str(e)
         return response
+    
 
 def main(args=None):
     rclpy.init(args=args)
     node = VoskNode()
-    rclpy.spin(node)
-    node.destroy_node()
-    rclpy.shutdown()
+    executor = rclpy.executors.MultiThreadedExecutor()
+    executor.add_node(node)
+    try:
+        executor.spin()
+    finally:
+        node.destroy_node()
+        rclpy.shutdown()
 
 if __name__ == '__main__':
     main()

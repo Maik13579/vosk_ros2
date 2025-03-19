@@ -7,6 +7,7 @@ import time
 import sounddevice as sd
 import vosk
 import wave
+import threading
 
 
 class VoskSpeechRecognizer:
@@ -38,6 +39,7 @@ class VoskSpeechRecognizer:
         self.model = vosk.Model(model_path)
         self.max_alternatives = max_alternatives
         self.set_words = set_words
+        self._recognizer_lock = threading.Lock() 
 
         # Optionally load speaker model
         self.spk_model = None
@@ -84,7 +86,8 @@ class VoskSpeechRecognizer:
         Returns the latest partial result as a JSON string, e.g.:
           {"partial": "hello wor"}
         """
-        return self.recognizer.PartialResult()
+        with self._recognizer_lock:
+            return self.recognizer.PartialResult()
 
     def get_final_result(self) -> str:
         """
@@ -97,7 +100,8 @@ class VoskSpeechRecognizer:
           "alternatives": [...]
         }
         """
-        return self.recognizer.FinalResult()
+        with self._recognizer_lock:
+            return self.recognizer.FinalResult()
 
     def run_mic(self, block_size=8000, silence_timeout=3.0, wav_file=None):
         """
@@ -127,12 +131,13 @@ class VoskSpeechRecognizer:
                 last_non_silence_time = time.time()
                 last_partial = ""
                 while self.running:
-
                     if self.tts_status: #Clear the queue
                         last_non_silence_time = time.time() #reset timer
                         with self.audio_queue.mutex:
                             self.audio_queue.queue.clear()
-                        self.recognizer.Reset()
+                        with self._recognizer_lock:
+                            self.recognizer.Reset()
+                        time.sleep(0.1)
                         continue
 
                     # Get data from the queue and process it
@@ -140,9 +145,12 @@ class VoskSpeechRecognizer:
                     # Write data to wave file if recording is enabled
                     if wf:
                         wf.writeframes(data)
-                    if self.recognizer.AcceptWaveform(data):
-                        self.running = False
-                        break
+
+                    # Protect recognizer call with lock.
+                    with self._recognizer_lock:
+                        if self.recognizer.AcceptWaveform(data):
+                            self.running = False
+                            break
     
                     pr = self.get_partial_result()
                     if '"partial"' in pr:
@@ -174,7 +182,7 @@ class VoskSpeechRecognizer:
         """
         if status:
             print(f"[Audio Status] {status}", file=sys.stderr)
-        if self.running:
+        if self.running and not self.tts_status:
             data_bytes = bytes(indata)
             self.audio_queue.put(data_bytes)
 
