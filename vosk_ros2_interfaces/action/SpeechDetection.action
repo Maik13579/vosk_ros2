@@ -2,7 +2,7 @@
 
 bool continuous         # If true, keep listening continuously until canceled
 bool publish_partial    # If true, send partial results as feedback
-string wave_file        # Path to store the audio file, if empty, don't save
+string wav_file         # Path to store the audio file, if empty, don't save
 # In continuous a counter is added to the file name starting with _0.wav
 ---
 # Result
