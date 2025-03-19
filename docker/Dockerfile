@@ -1,5 +1,5 @@
 ARG BASE_IMAGE=ros:humble
-FROM ${BASE_IMAGE}
+FROM ${BASE_IMAGE} as base
 
 # Environment variables
 ENV ROS_WS=/root/ros2_ws
@@ -19,6 +19,11 @@ RUN apt update \
  && apt install -y ros-$ROS_DISTRO-rmw-cyclonedds-cpp \
  && rm -rf /var/lib/apt/lists/*
 
+
+
+# Build vosk and ros wrapper
+FROM ${BASE_IMAGE} as build
+
 # Install Python deps, audio libs, Vosk, wget/unzip, and required tools
 RUN apt update \
  && apt install -y software-properties-common \
@@ -32,16 +37,29 @@ RUN apt update \
  && python3 -m pip install --no-cache-dir vosk sounddevice \
  && rm -rf /var/lib/apt/lists/*
 
-# Download, build, and install OpenFST
-RUN wget https://www.openfst.org/twiki/pub/FST/FstDownload/openfst-1.8.2.tar.gz \
- && tar -xzvf openfst-1.8.2.tar.gz \
- && cd openfst-1.8.2 \
- && ./configure --enable-far --enable-static --enable-shared \
- && make -j4 \
- && make install \
- && cd .. \
- && rm -rf openfst-1.8.2 openfst-1.8.2.tar.gz
+# Copy package.xml files to trigger dependency installation
+COPY vosk_ros2_interfaces/package.xml ${ROS_WS}/src/vosk_ros2_interfaces/package.xml
+COPY vosk_ros2/package.xml ${ROS_WS}/src/vosk_ros2/package.xml
 
+RUN apt update \
+ && rosdep update \
+ && rosdep install --from-paths ${ROS_WS}/src --ignore-src -r -y \
+ && rm -rf /var/lib/apt/lists/*
+
+# Copy source and build
+COPY vosk_ros2_interfaces ${ROS_WS}/src/vosk_ros2_interfaces
+COPY vosk_ros2 ${ROS_WS}/src/vosk_ros2
+
+WORKDIR ${ROS_WS}
+RUN source /opt/ros/$ROS_DISTRO/setup.bash \
+ && colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release
+
+RUN echo "source ${ROS_WS}/install/setup.bash" >> /root/.bashrc
+
+
+
+# Download models
+FROM ${BASE_IMAGE} as download_models
 # Download and unzip a small English speech model
 RUN mkdir -p /opt/vosk_model \
  && cd /opt/vosk_model \
@@ -64,24 +82,19 @@ RUN cd /opt/vosk_model \
  && mv vosk-model-en-us-0.22-lgraph big_speech_model \
  && rm vosk-model-en-us-0.22-lgraph.zip
 
-# Copy package.xml files to trigger dependency installation
-COPY vosk_ros2_interfaces/package.xml ${ROS_WS}/src/vosk_ros2_interfaces/package.xml
-COPY vosk_ros2/package.xml ${ROS_WS}/src/vosk_ros2/package.xml
+ 
 
-RUN apt update \
- && rosdep update \
- && rosdep install --from-paths ${ROS_WS}/src --ignore-src -r -y \
- && rm -rf /var/lib/apt/lists/*
-
-# Copy source and build
-COPY vosk_ros2_interfaces ${ROS_WS}/src/vosk_ros2_interfaces
-COPY vosk_ros2 ${ROS_WS}/src/vosk_ros2
-
-WORKDIR ${ROS_WS}
-RUN source /opt/ros/$ROS_DISTRO/setup.bash \
- && colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release
-
-RUN echo "source ${ROS_WS}/install/setup.bash" >> /root/.bashrc
+# Build custom models (needs the models to build intop)
+FROM ${BASE_IMAGE} as build_custom_models
+# Download, build, and install OpenFST
+RUN wget https://www.openfst.org/twiki/pub/FST/FstDownload/openfst-1.8.2.tar.gz \
+&& tar -xzvf openfst-1.8.2.tar.gz \
+&& cd openfst-1.8.2 \
+&& ./configure --enable-far --enable-static --enable-shared \
+&& make -j4 \
+&& make install \
+&& cd .. \
+&& rm -rf openfst-1.8.2 openfst-1.8.2.tar.gz
 
 COPY scripts /scripts
 ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH

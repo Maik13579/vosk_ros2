@@ -161,9 +161,3 @@ An example of JSGF files can be found in the [scripts](./scripts) folder.
    Place the package in your ROS 2 workspace under `src` and build:
    ```bash
    colcon build --symlink-install
-
-
-Or just do
-```bash
-docker compose -f docker/compose.yaml up
-```

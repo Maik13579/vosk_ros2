@@ -2,9 +2,6 @@ services:
   vosk_ros2:
     container_name: vosk_ros2
     image: vosk_ros2
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile
     environment:
       ROS_DOMAIN_ID: 42
       DISPLAY: $DISPLAY
