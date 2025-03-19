@@ -21,9 +21,8 @@ RUN apt update \
 
 
 
-# Build vosk and ros wrapper
-FROM ${BASE_IMAGE} as build
-
+# Install deps
+FROM ${BASE_IMAGE} as deps
 # Install Python deps, audio libs, Vosk, wget/unzip, and required tools
 RUN apt update \
  && apt install -y software-properties-common \
@@ -37,6 +36,10 @@ RUN apt update \
  && python3 -m pip install --no-cache-dir vosk sounddevice \
  && rm -rf /var/lib/apt/lists/*
 
+
+ 
+# Build vosk and ros wrapper
+FROM ${BASE_IMAGE} as build
 # Copy package.xml files to trigger dependency installation
 COPY vosk_ros2_interfaces/package.xml ${ROS_WS}/src/vosk_ros2_interfaces/package.xml
 COPY vosk_ros2/package.xml ${ROS_WS}/src/vosk_ros2/package.xml
