@@ -129,6 +129,7 @@ class VoskSpeechRecognizer:
                 while self.running:
 
                     if self.tts_status: #Clear the queue
+                        last_non_silence_time = time.time() #reset timer
                         with self.audio_queue.mutex:
                             self.audio_queue.queue.clear()
                         self.recognizer.Reset()
