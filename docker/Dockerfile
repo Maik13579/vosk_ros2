@@ -90,6 +90,7 @@ RUN cd /opt/vosk_model \
 # Build custom models (needs the models to build intop)
 FROM ${BASE_IMAGE} as build_custom_models
 # Download, build, and install OpenFST
+WORKDIR /tmp
 RUN wget https://www.openfst.org/twiki/pub/FST/FstDownload/openfst-1.8.2.tar.gz \
 && tar -xzvf openfst-1.8.2.tar.gz \
 && cd openfst-1.8.2 \
